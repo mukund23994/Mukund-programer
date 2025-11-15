@@ -27,23 +27,60 @@
 
         <div class="product-card">
             <img src="tshirt1.jpg">
-            <h3>Black T-Shirt</h3>
+            <h3>Black T-Shirt</h3><button onclick="placeOrder('T-Shirt', 399)">Buy</button>
+
             <p>₹499</p>
-            <button>Buy Now</button>
+            <button</button>
         </div>
 
         <div class="product-card">
             <img src="tshirt2.jpg">
             <h3>White Hoodie</h3>
-            <p>₹899</p>
-            <button>Buy Now</button>
+            <p>₹899</p><button onclick="placeOrder('T-Shirt', 399)">Buy</button>
+</button>
         </div>
 
     </section>
 
     <footer>
         <p>© 2025 Indian Seller</p>
-    </footer>
+    </footer><script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "indian-sellar-marketplac-d6395",
+    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+    messagingSenderId: "35436518492",
+    appId: "1:35436518492:web:315d09fd617dbfaed71a99",
+    measurementId: "G-J7H88FDSEK"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  function placeOrder(productName, price) {
+    const ordersRef = ref(db, "orders/");
+    const newOrderRef = push(ordersRef);
+
+    set(newOrderRef, {
+      product: productName,
+      price: price,
+      time: new Date().toString()
+    }).then(() => {
+      alert("Order placed successfully!");
+    }).catch((error) => {
+      alert("Error: " + error);
+    });
+  }
+
+  window.placeOrder = placeOrder;
+</script>
+
 
 </body>
 </html>
+
