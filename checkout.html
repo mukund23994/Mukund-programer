@@ -1,104 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Checkout</title>
+<h2>Checkout</h2>
 
-  <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background: #28a745;
-      color: white;
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 18px;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-  </style>
-</head>
+<form id="checkoutForm">
+  <label>Name:</label><br>
+  <input type="text" id="name" required><br><br>
 
-<body>
+  <label>Phone:</label><br>
+  <input type="text" id="phone" required><br><br>
 
-  <h2>Checkout</h2>
+  <label>Address:</label><br>
+  <textarea id="address" required></textarea><br><br>
 
-  <h3>Enter Your Details</h3>
+  <button type="submit">Place Order</button>
+</form>
 
-  <input type="text" id="name" placeholder="Full Name" required>
-  <input type="text" id="phone" placeholder="Phone Number" required>
-  <textarea id="address" placeholder="Delivery Address" rows="4"></textarea>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  <button onclick="placeOrder()">Place Order</button>
+const firebaseConfig = {
+  apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+  authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+  databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "indian-sellar-marketplac-d6395",
+  storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+  messagingSenderId: "35436518492",
+  appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
 
-  <!-- Firebase CDN links (version 8 → working with your code) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  <script>
-    // ✅ YOUR FINAL FIREBASE CONFIG
-    const firebaseConfig = {
-      apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-      authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-      databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "indian-sellar-marketplac-d6395",
-      storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-      messagingSenderId: "35436518492",
-      appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
-    };
+document.getElementById('checkoutForm').addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  let order = {
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    address: document.getElementById("address").value,
+    product: localStorage.getItem("selectedProduct") || "Unknown Product",
+    date: new Date().toLocaleString()
+  };
 
-    // ✅ Final Working Place Order Function
-    function placeOrder() {
-      let name = document.getElementById("name").value;
-      let phone = document.getElementById("phone").value;
-      let address = document.getElementById("address").value;
+  const ordersRef = ref(db, "orders");
+  const newOrderRef = push(ordersRef);
 
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-      if (!name || !phone || !address) {
-        alert("Please fill all fields");
-        return;
-      }
-
-      if (cart.length === 0) {
-        alert("Your cart is empty!");
-        return;
-      }
-
-      let orderData = {
-        name: name,
-        phone: phone,
-        address: address,
-        items: cart,
-        time: new Date().toLocaleString()
-      };
-
-      db.ref("orders/").push(orderData)
-      .then(() => {
-        alert("Order placed successfully!");
-        localStorage.removeItem("cart");
-        window.location.href = "index.html";
-      })
-      .catch(error => {
-        alert("Firebase Error: " + error);
-      });
-    }
-  </script>
-
-</body>
-</html>
+  set(newOrderRef, order)
+    .then(() => {
+      alert("Order Placed Successfully!");
+      window.location.href = "orders.html";
+    })
+    .catch((err) => alert("Error: " + err));
+});
+</script>
