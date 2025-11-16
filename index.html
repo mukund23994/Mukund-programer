@@ -1,35 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Store - Add to Cart</title>
+  <title>My Store - Guest Cart</title>
 </head>
 <body>
-  <h1>My Products</h1>
+  <h1>Welcome to My Store</h1>
 
   <div id="products"></div>
 
   <h2>Your Cart</h2>
   <div id="cart"></div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-
   <script>
-    // ===== Firebase Config =====
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
     // ===== Sample Products =====
     const sampleProducts = [
       {id: "1", name: "Product 1", price: 499},
@@ -40,7 +22,7 @@
     const productsDiv = document.getElementById("products");
     const cartDiv = document.getElementById("cart");
 
-    // Display products
+    // ===== Display Products =====
     sampleProducts.forEach(product => {
       const productEl = document.createElement("div");
       productEl.innerHTML = `
@@ -52,56 +34,35 @@
     });
 
     // ===== Add to Cart Function =====
-    async function addToCart(id, name, price) {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Please login first!");
-        return;
-      }
+    function addToCart(id, name, price) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const index = cart.findIndex(p => p.id === id);
 
-      const cartRef = db.collection("carts").doc(user.uid);
-
-      const cartDoc = await cartRef.get();
-      if (cartDoc.exists) {
-        let cartData = cartDoc.data();
-        // Check if product already in cart
-        const index = cartData.products.findIndex(p => p.id === id);
-        if (index !== -1) {
-          cartData.products[index].quantity += 1;
-        } else {
-          cartData.products.push({id, name, price, quantity: 1});
-        }
-        await cartRef.set(cartData);
+      if (index !== -1) {
+        cart[index].quantity += 1;
       } else {
-        await cartRef.set({
-          products: [{id, name, price, quantity: 1}]
-        });
+        cart.push({id, name, price, quantity: 1});
       }
+
+      localStorage.setItem("cart", JSON.stringify(cart));
       alert(name + " added to cart!");
       displayCart();
     }
 
     // ===== Display Cart =====
-    async function displayCart() {
-      const user = auth.currentUser;
-      if (!user) {
-        cartDiv.innerHTML = "Login to see your cart.";
-        return;
-      }
+    function displayCart() {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cartDiv.innerHTML = "";
 
-      const cartDoc = await db.collection("carts").doc(user.uid).get();
-      if (!cartDoc.exists) {
+      if (cart.length === 0) {
         cartDiv.innerHTML = "Cart is empty.";
         return;
       }
 
-      const cartData = cartDoc.data();
-      cartDiv.innerHTML = "";
       let total = 0;
-
-      cartData.products.forEach(p => {
+      cart.forEach(p => {
         const pEl = document.createElement("div");
-        pEl.innerHTML = `${p.name} - ₹${p.price} x ${p.quantity}`;
+        pEl.innerHTML = `${p.name} - ₹${p.price} x ${p.quantity} <button onclick="removeFromCart('${p.id}')">Remove</button>`;
         cartDiv.appendChild(pEl);
         total += p.price * p.quantity;
       });
@@ -111,16 +72,16 @@
       cartDiv.appendChild(totalEl);
     }
 
-    // ===== Check user login status =====
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        console.log("Logged in as: ", user.uid);
-        displayCart();
-      } else {
-        console.log("No user logged in");
-        cartDiv.innerHTML = "Login to see your cart.";
-      }
-    });
+    // ===== Remove from Cart =====
+    function removeFromCart(id) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart = cart.filter(p => p.id !== id);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      displayCart();
+    }
+
+    // ===== Initialize Cart Display =====
+    displayCart();
   </script>
 </body>
 </html>
