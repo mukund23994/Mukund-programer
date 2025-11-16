@@ -1,110 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Orders</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .login-box, .orders-box {
-      max-width: 450px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input {
+    body { font-family: Arial; padding: 20px; }
+
+    table {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      border-collapse: collapse;
+      margin-top: 20px;
     }
+
+    th, td {
+      border: 1px solid #777;
+      padding: 10px;
+      text-align: left;
+    }
+
     button {
-      width: 100%;
-      padding: 10px;
-      background: #007bff;
-      color: #fff;
+      padding: 8px 12px;
+      background: red;
+      color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
     }
-    .order {
-      background: #e9e9e9;
+
+    #loginBox {
+      padding: 20px;
+      background: #eee;
+      width: 300px;
+      margin: 50px auto;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    input {
       padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
+      width: 90%;
+      margin-bottom: 10px;
     }
   </style>
 </head>
+
 <body>
-  <h1>Admin Orders (Private)</h1>
 
-  <div class="login-box" id="loginBox">
-    <h3>Enter Admin Password</h3>
-    <input type="password" id="adminPass" placeholder="Password" />
-    <button onclick="checkPass()">Login</button>
-  </div>
+<div id="loginBox">
+  <h3>Admin Login</h3>
+  <input type="password" id="adminPass" placeholder="Enter Password">
+  <button onclick="checkLogin()">Login</button>
+</div>
 
-  <div class="orders-box" id="ordersBox" style="display:none;">
-    <h3>All Orders</h3>
-    <div id="ordersList">Loading...</div>
-  </div>
+<div id="ordersSection" style="display:none;">
+  <h2>All Orders</h2>
+  <table id="ordersTable">
+    <tr>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Address</th>
+      <th>Items</th>
+      <th>Delete</th>
+    </tr>
+  </table>
+</div>
 
-  <script>
-    // ********* ADMIN PASSWORD SET HERE *********
-    const ADMIN_PASSWORD = "mukund123bihari"; // Change it anytime
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    function checkPass() {
-      const input = document.getElementById("adminPass").value;
-      if (input === ADMIN_PASSWORD) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("ordersBox").style.display = "block";
-        loadOrders();
-      } else {
-        alert("Wrong Password!");
-      }
-    }
+<script>
 
-    // ********* LOAD ORDERS FROM FIREBASE *********
-    function loadOrders() {
-      fetch("https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app/orders.json")
-        .then(res => res.json())
-        .then(data => {
-          const box = document.getElementById("ordersList");
-          box.innerHTML = "";
+const firebaseConfig = {
+  apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+  authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+  databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "indian-sellar-marketplac-d6395",
+  storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+  messagingSenderId: "35436518492",
+  appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
 
-          if (!data) {
-            box.innerHTML = "No orders found!";
-            return;
-          }
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-          Object.keys(data).forEach(id => {
-            const order = data[id];
+let correctPass = "mukund123bihari";  // YOUR ADMIN PASSWORD
 
-            const div = document.createElement("div");
-            div.className = "order";
-            div.innerHTML = `
-              <b>Order ID:</b> ${id}<br>
-              <b>Name:</b> ${order.name}<br>
-              <b>Address:</b> ${order.address}<br>
-              <b>Phone:</b> ${order.phone}<br>
-              <b>Product:</b> ${order.product}<br>
-              <b>Price:</b> ₹${order.price}<br>
-            `;
-            box.appendChild(div);
-          });
-        });
-    }
-  </script>
+
+// 🔐 Admin Login
+function checkLogin() {
+  let pass = document.getElementById("adminPass").value;
+  
+  if (pass === correctPass) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("ordersSection").style.display = "block";
+    loadOrders();
+  } else {
+    alert("Wrong Password!");
+  }
+}
+
+
+// 📌 Load Orders
+function loadOrders() {
+  db.ref("orders").on("value", snapshot => {
+    let table = document.getElementById("ordersTable");
+    table.innerHTML = `
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Address</th>
+        <th>Items</th>
+        <th>Delete</th>
+      </tr>
+    `;
+    
+    snapshot.forEach(order => {
+      let data = order.val();
+      let row = `
+        <tr>
+          <td>${data.customerName}</td>
+          <td>${data.phone}</td>
+          <td>${data.address}</td>
+          <td>${JSON.stringify(data.cartItems)}</td>
+          <td><button onclick="deleteOrder('${order.key}')">Delete</button></td>
+        </tr>
+      `;
+      table.innerHTML += row;
+    });
+  });
+}
+
+
+// ❌ DELETE Order
+function deleteOrder(orderId) {
+  let confirmDel = confirm("Are you sure you want to delete this order?");
+  if (!confirmDel) return;
+
+  db.ref("orders/" + orderId).remove()
+    .then(() => {
+      alert("Order deleted!");
+      loadOrders();
+    })
+    .catch(err => alert("Error: " + err));
+}
+
+</script>
 
 </body>
 </html>
