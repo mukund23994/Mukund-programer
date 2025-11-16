@@ -43,26 +43,26 @@
 
   <button onclick="placeOrder()">Place Order</button>
 
-  <!-- Firebase CDN links -->
+  <!-- Firebase CDN links (version 8 → working with your code) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
-    //🔥 Your Firebase Config (yahan apna config paste karna)
+    // ✅ YOUR FINAL FIREBASE CONFIG
     const firebaseConfig = {
-      apiKey: "YOUR-KEY",
-      authDomain: "YOUR-PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR-PROJECT.firebaseio.com",
-      projectId: "YOUR-PROJECT-ID",
-      storageBucket: "YOUR-PROJECT.appspot.com",
-      messagingSenderId: "YOUR-SENDER-ID",
-      appId: "YOUR-APP-ID"
+      apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+      authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+      databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "indian-sellar-marketplac-d6395",
+      storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+      messagingSenderId: "35436518492",
+      appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    //🔥 Place Order Function
+    // ✅ Final Working Place Order Function
     function placeOrder() {
       let name = document.getElementById("name").value;
       let phone = document.getElementById("phone").value;
@@ -88,17 +88,15 @@
         time: new Date().toLocaleString()
       };
 
-      //🔥 Save to Firebase
-      let orderRef = db.ref("orders").push();
-      orderRef.set(orderData)
-        .then(() => {
-          alert("Order placed successfully!");
-          localStorage.removeItem("cart");
-          window.location.href = "index.html";
-        })
-        .catch(err => {
-          alert("Error: " + err);
-        });
+      db.ref("orders/").push(orderData)
+      .then(() => {
+        alert("Order placed successfully!");
+        localStorage.removeItem("cart");
+        window.location.href = "index.html";
+      })
+      .catch(error => {
+        alert("Firebase Error: " + error);
+      });
     }
   </script>
 
