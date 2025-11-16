@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkout</title>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_KEY",
+      authDomain: "YOUR_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_BUCKET",
+      messagingSenderId: "YOUR_SENDER",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #ff5733;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Checkout</h2>
+
+<input type="text" id="name" placeholder="Full Name">
+<input type="text" id="phone" placeholder="Phone Number">
+<textarea id="address" placeholder="Full Address"></textarea>
+
+<button onclick="placeOrder()">Place Order</button>
+
+<script>
+function placeOrder() {
+  let name = document.getElementById("name").value;
+  let phone = document.getElementById("phone").value;
+  let address = document.getElementById("address").value;
+
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (!name || !phone || !address) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  let orderData = {
+    customerName: name,
+    phone: phone,
+    address: address,
+    items: cart,
+    time: new Date().toISOString()
+  };
+
+  db.ref("orders").push(orderData)
+    .then(() => {
+      alert("Order Placed Successfully!");
+      localStorage.removeItem("cart");
+      window.location.href = "index.html";
+    })
+    .catch(err => alert("Error: " + err));
+}
+</script>
+
+</body>
+</html>
