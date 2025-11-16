@@ -173,77 +173,50 @@
   </footer>
 
   <!-- Guest Cart JS -->
-  <script>
-   const sampleProducts = [
-  {id: "1", name: "Product 1", price: 499, image: "product1.jpg"},
-  {id: "2", name: "Product 2", price: 299, image: "product2.jpg"},
-  {id: "3", name: "Product 3", price: 199, image: "product3.jpg"},
-  {id: "4", name: "Product 4", price: 399, image: "product4.jpg"},
-  {id: "5", name: "Product 5", price: 599, image: "product5.jpg"},
-  {id: "6", name: "Product 6", price: 349, image: "product6.jpg"},
-  {id: "7", name: "Product 7", price: 259, image: "product7.jpg"},
-  {id: "8", name: "Product 8", price: 499, image: "product8.jpg"},
-  {id: "9", name: "Product 9", price: 399, image: "product9.jpg"},
-  {id: "10", name: "Product 10", price: 599, image: "product10.jpg"}
+ <script>
+const sampleProducts = [
+  {id: "1", name: "T-Shirt Black", price: 499, image: "product1.jpg"},
+  {id: "2", name: "T-Shirt White", price: 299, image: "product2.jpg"},
+  {id: "3", name: "Kurti Pink", price: 399, image: "product3.jpg"},
+  {id: "4", name: "Shirt Blue", price: 599, image: "product4.jpg"},
+  {id: "5", name: "Jeans Black", price: 799, image: "product5.jpg"}
 ];
 
+const homeProductsDiv = document.getElementById("home-products");
 
-    const homeProductsDiv = document.getElementById("home-products");
+sampleProducts.forEach(product => {
+  const productEl = document.createElement("div");
+  productEl.className = "product";
+  productEl.innerHTML = `
+    <img src="${product.image}" style="width:100%; border-radius:10px;">
+    <h3>${product.name}</h3>
+    <p>₹${product.price}</p>
+    <button style="
+      padding:10px 20px;
+      background:#ff5733;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;"
+      onclick="addToCart('${product.id}','${product.name}',${product.price})">
+      Buy
+    </button>
+  `;
+  homeProductsDiv.appendChild(productEl);
+});
 
-    sampleProducts.forEach(product => {
-      const productEl = document.createElement("div");
-      productEl.className = "product";
-      productEl.style.background = "#fff";
-      productEl.style.padding = "15px";
-      productEl.style.borderRadius = "15px";
-      productEl.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-      productEl.style.minWidth = "200px";
-      productEl.style.flex = "0 0 auto";
-      productEl.innerHTML = `
-        <h3>${product.name}</h3>
-        <p>Price: ₹${product.price}</p>
-        <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">Add to Cart</button>
-      `;
-      homeProductsDiv.appendChild(productEl);
-    });
-
-    function addToCart(id, name, price) {
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-      const index = cart.findIndex(p => p.id === id);
-      if(index !== -1) cart[index].quantity += 1;
-      else cart.push({id, name, price, quantity:1});
-      localStorage.setItem("cart", JSON.stringify(cart));
-      displayCart();
-      alert(name + " added to cart!");
-    }
-
-    function displayCart() {
-      const cartDiv = document.getElementById("cart");
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-      cartDiv.innerHTML = "<h3>Your Cart</h3>";
-      if(cart.length === 0) { cartDiv.innerHTML += "<p>Cart is empty.</p>"; return; }
-
-      let total = 0;
-      cart.forEach(p => {
-        cartDiv.innerHTML += `<div>${p.name} - ₹${p.price} x ${p.quantity} 
-          <button onclick="removeFromCart('${p.id}')">Remove</button></div>`;
-        total += p.price * p.quantity;
-      });
-      cartDiv.innerHTML += `<h3>Total: ₹${total}</h3>`;
-    }
-
-    function removeFromCart(id) {
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-      cart = cart.filter(p => p.id !== id);
-      localStorage.setItem("cart", JSON.stringify(cart));
-      displayCart();
-    }
-
-    displayCart();
-  </script>
+// CART
+function addToCart(id, name, price){
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  cart.push({id,name,price});
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert(name + " added to cart!");
+}
+</script>
 
 </body>
 </html>
+
 
 
 
