@@ -1,126 +1,126 @@
-<!-- Modern Login Form -->
-<style>
-  .login-container {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f0f2f5;
-  }
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Store - Add to Cart</title>
+</head>
+<body>
+  <h1>My Products</h1>
 
-  .login-box {
-    width: 350px;
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    text-align: center;
-  }
+  <div id="products"></div>
 
-  .login-box h2 {
-    margin-bottom: 20px;
-    font-size: 26px;
-    color: #333;
-  }
+  <h2>Your Cart</h2>
+  <div id="cart"></div>
 
-  .input-field {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-  }
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 
-  .btn {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    background: #007bff;
-    color: white;
-    font-size: 17px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-  }
+  <script>
+    // ===== Firebase Config =====
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  .btn:hover {
-    background: #005fcc;
-  }
+    // ===== Sample Products =====
+    const sampleProducts = [
+      {id: "1", name: "Product 1", price: 499},
+      {id: "2", name: "Product 2", price: 299},
+      {id: "3", name: "Product 3", price: 199}
+    ];
 
-  .switch {
-    margin-top: 10px;
-    font-size: 14px;
-  }
+    const productsDiv = document.getElementById("products");
+    const cartDiv = document.getElementById("cart");
 
-  .switch span {
-    color: #007bff;
-    cursor: pointer;
-  }
-</style>
+    // Display products
+    sampleProducts.forEach(product => {
+      const productEl = document.createElement("div");
+      productEl.innerHTML = `
+        <h3>${product.name}</h3>
+        <p>Price: ₹${product.price}</p>
+        <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">Add to Cart</button>
+      `;
+      productsDiv.appendChild(productEl);
+    });
 
-<div class="login-container">
-  <div class="login-box">
-    <h2 id="form-title">Login</h2>
+    // ===== Add to Cart Function =====
+    async function addToCart(id, name, price) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please login first!");
+        return;
+      }
 
-    <input id="email" class="input-field" type="email" placeholder="Email">
-    <input id="password" class="input-field" type="password" placeholder="Password">
+      const cartRef = db.collection("carts").doc(user.uid);
 
-    <button class="btn" onclick="login()">Login</button>
-    <button class="btn" onclick="signup()">Signup</button>
+      const cartDoc = await cartRef.get();
+      if (cartDoc.exists) {
+        let cartData = cartDoc.data();
+        // Check if product already in cart
+        const index = cartData.products.findIndex(p => p.id === id);
+        if (index !== -1) {
+          cartData.products[index].quantity += 1;
+        } else {
+          cartData.products.push({id, name, price, quantity: 1});
+        }
+        await cartRef.set(cartData);
+      } else {
+        await cartRef.set({
+          products: [{id, name, price, quantity: 1}]
+        });
+      }
+      alert(name + " added to cart!");
+      displayCart();
+    }
 
-    <p class="switch">
-      Already Registered? <span onclick="switchToLogin()">Login</span><br>
-      New User? <span onclick="switchToSignup()">Signup</span>
-    </p>
-  </div>
-</div>
+    // ===== Display Cart =====
+    async function displayCart() {
+      const user = auth.currentUser;
+      if (!user) {
+        cartDiv.innerHTML = "Login to see your cart.";
+        return;
+      }
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+      const cartDoc = await db.collection("carts").doc(user.uid).get();
+      if (!cartDoc.exists) {
+        cartDiv.innerHTML = "Cart is empty.";
+        return;
+      }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "indian-sellar-marketplac-d6395",
-    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-    messagingSenderId: "35436518492",
-    appId: "1:35436518492:web:315d09fd617dbfaed71a99",
-    measurementId: "G-J7H88FDSEK"
-  };
+      const cartData = cartDoc.data();
+      cartDiv.innerHTML = "";
+      let total = 0;
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+      cartData.products.forEach(p => {
+        const pEl = document.createElement("div");
+        pEl.innerHTML = `${p.name} - ₹${p.price} x ${p.quantity}`;
+        cartDiv.appendChild(pEl);
+        total += p.price * p.quantity;
+      });
 
-  // Signup
-  window.signup = function () {
-    let email = document.getElementById("email").value;
-    let pass = document.getElementById("password").value;
+      const totalEl = document.createElement("h3");
+      totalEl.innerHTML = `Total: ₹${total}`;
+      cartDiv.appendChild(totalEl);
+    }
 
-    createUserWithEmailAndPassword(auth, email, pass)
-      .then(() => alert("Signup Successful!"))
-      .catch(err => alert(err.message));
-  }
-
-  // Login
-  window.login = function () {
-    let email = document.getElementById("email").value;
-    let pass = document.getElementById("password").value;
-
-    signInWithEmailAndPassword(auth, email, pass)
-      .then(() => alert("Login Successful!"))
-      .catch(err => alert(err.message));
-  }
-
-  function switchToSignup() {
-    document.getElementById("form-title").innerText = "Signup";
-  }
-
-  function switchToLogin() {
-    document.getElementById("form-title").innerText = "Login";
-  }
-</script>
+    // ===== Check user login status =====
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        console.log("Logged in as: ", user.uid);
+        displayCart();
+      } else {
+        console.log("No user logged in");
+        cartDiv.innerHTML = "Login to see your cart.";
+      }
+    });
+  </script>
+</body>
+</html>
