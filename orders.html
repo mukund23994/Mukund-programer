@@ -1,115 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>All Orders – Admin Panel</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Orders</title>
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
       padding: 20px;
-      background: #f7f7f7;
     }
-    h2 {
+    h1 {
       text-align: center;
-      margin-bottom: 20px;
     }
-    .order-box {
-      background: white;
-      padding: 15px;
+    .login-box, .orders-box {
+      max-width: 450px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
       border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .item {
-      background: #eee;
-      padding: 8px;
-      margin: 5px 0;
-      border-radius: 6px;
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
     button {
-      background: red;
-      color: white;
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
       border: none;
-      padding: 10px 14px;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
-      margin-top: 10px;
-      font-size: 15px;
+    }
+    .order {
+      background: #e9e9e9;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
     }
   </style>
 </head>
-
 <body>
+  <h1>Admin Orders (Private)</h1>
 
-<h2>📦 All Customer Orders</h2>
+  <div class="login-box" id="loginBox">
+    <h3>Enter Admin Password</h3>
+    <input type="password" id="adminPass" placeholder="Password" />
+    <button onclick="checkPass()">Login</button>
+  </div>
 
-<div id="orders"></div>
+  <div class="orders-box" id="ordersBox" style="display:none;">
+    <h3>All Orders</h3>
+    <div id="ordersList">Loading...</div>
+  </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // ********* ADMIN PASSWORD SET HERE *********
+    const ADMIN_PASSWORD = "mukund123"; // Change it anytime
 
-<script>
-  // 🔥 Your Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "indian-sellar-marketplac-d6395",
-    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-    messagingSenderId: "35436518492",
-    appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  // 🔥 Fetch All Orders
-  function loadOrders() {
-    db.ref("orders").on("value", snapshot => {
-      let ordersDiv = document.getElementById("orders");
-      ordersDiv.innerHTML = "";
-
-      snapshot.forEach(order => {
-        let data = order.val();
-
-        let html = `
-          <div class="order-box">
-            <h3>👤 ${data.name}</h3>
-            <p><b>📞 Phone:</b> ${data.phone}</p>
-            <p><b>📍 Address:</b> ${data.address}</p>
-            <p><b>⏱ Time:</b> ${data.time}</p>
-            <h4>🛒 Items:</h4>
-        `;
-
-        data.items.forEach(item => {
-          html += `
-            <div class="item">
-              ${item.name} — ₹${item.price}
-            </div>
-          `;
-        });
-
-        html += `
-            <button onclick="deleteOrder('${order.key}')">Delete Order</button>
-          </div>
-        `;
-
-        ordersDiv.innerHTML += html;
-      });
-    });
-  }
-
-  // ❌ Delete Order
-  function deleteOrder(id) {
-    if (confirm("Are you sure you want to delete this order?")) {
-      db.ref("orders/" + id).remove();
+    function checkPass() {
+      const input = document.getElementById("adminPass").value;
+      if (input === ADMIN_PASSWORD) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("ordersBox").style.display = "block";
+        loadOrders();
+      } else {
+        alert("Wrong Password!");
+      }
     }
-  }
 
-  loadOrders();
-</script>
+    // ********* LOAD ORDERS FROM FIREBASE *********
+    function loadOrders() {
+      fetch("https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app/orders.json")
+        .then(res => res.json())
+        .then(data => {
+          const box = document.getElementById("ordersList");
+          box.innerHTML = "";
+
+          if (!data) {
+            box.innerHTML = "No orders found!";
+            return;
+          }
+
+          Object.keys(data).forEach(id => {
+            const order = data[id];
+
+            const div = document.createElement("div");
+            div.className = "order";
+            div.innerHTML = `
+              <b>Order ID:</b> ${id}<br>
+              <b>Name:</b> ${order.name}<br>
+              <b>Address:</b> ${order.address}<br>
+              <b>Phone:</b> ${order.phone}<br>
+              <b>Product:</b> ${order.product}<br>
+              <b>Price:</b> ₹${order.price}<br>
+            `;
+            box.appendChild(div);
+          });
+        });
+    }
+  </script>
 
 </body>
 </html>
