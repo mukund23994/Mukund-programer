@@ -79,7 +79,11 @@
 
   <section>
     <button class="download-btn" onclick="window.location.href='YOUR_APK_LINK_HERE.apk'">
-      📲 Download App
+      📲 Download App<section>
+  <h2>🛒 Our Products</h2>
+  <div id="home-products" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;"></div>
+</section>
+
     </button>
   </section>
 
@@ -92,6 +96,75 @@
       <div class="feature">🚚 Fast Delivery Across India</div>
     </div>
   </section>
+<script>
+  // Sample Products
+  const sampleProducts = [
+    {id: "1", name: "Product 1", price: 499},
+    {id: "2", name: "Product 2", price: 299},
+    {id: "3", name: "Product 3", price: 199}
+  ];
+
+  const homeProductsDiv = document.getElementById("home-products");
+
+  // Display Products
+  sampleProducts.forEach(product => {
+    const productEl = document.createElement("div");
+    productEl.className = "product";
+    productEl.style.background = "#fff";
+    productEl.style.padding = "15px";
+    productEl.style.borderRadius = "15px";
+    productEl.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
+    productEl.innerHTML = `
+      <h3>${product.name}</h3>
+      <p>Price: ₹${product.price}</p>
+      <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">Add to Cart</button>
+    `;
+    homeProductsDiv.appendChild(productEl);
+  });
+
+  // Guest Cart Functions
+  function addToCart(id, name, price) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const index = cart.findIndex(p => p.id === id);
+    if(index !== -1) cart[index].quantity += 1;
+    else cart.push({id, name, price, quantity:1});
+    localStorage.setItem("cart", JSON.stringify(cart));
+    displayCart();
+    alert(name + " added to cart!");
+  }
+
+  function displayCart() {
+    let cartDiv = document.getElementById("cart");
+    if(!cartDiv) {
+      cartDiv = document.createElement("div");
+      cartDiv.id = "cart";
+      document.body.appendChild(cartDiv);
+    }
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cartDiv.innerHTML = "<h3>Your Cart</h3>";
+    if(cart.length === 0) { cartDiv.innerHTML += "<p>Cart is empty.</p>"; return; }
+
+    let total = 0;
+    cart.forEach(p => {
+      cartDiv.innerHTML += `<div>${p.name} - ₹${p.price} x ${p.quantity} 
+        <button onclick="removeFromCart('${p.id}')">Remove</button></div>`;
+      total += p.price * p.quantity;
+    });
+    cartDiv.innerHTML += `<h3>Total: ₹${total}</h3>`;
+  }
+
+  function removeFromCart(id) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart = cart.filter(p => p.id !== id);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    displayCart();
+  }
+
+  displayCart(); // Initialize cart on page load
+</script>
+<div id="cart"></div>
+
 
   <footer>
     © 2025 Indian Seller | Contact: indiansellerapp@gmail.com
@@ -99,3 +172,4 @@
 
 </body>
 </html>
+
