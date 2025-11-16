@@ -1,83 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products - Indian Seller</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Our Products</title>
+
+<style>
+  body {
+    font-family: Arial;
+    padding: 20px;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  .products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .card {
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+  }
+
+  .card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  button {
+    background: #ff5733;
+    color: white;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+</style>
 </head>
+
 <body>
 
-<header>
-    <img src="logo.png" class="logo">
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="products.html">Products</a>
-        <a href="#">Contact</a>
-    </nav>
-</header>
+<h2>Our Products</h2>
 
-<section class="products-section">
-    <h2>All Products</h2>
+<div class="products">
 
-    <div class="product-card">
-        <img src="tshirt1.jpg">
-        <h3>Black T-Shirt</h3>
-        <p>₹399</p>
-        <button>Buy Now</button>
-    </div><a href="https://wa.me/919241753810?text=Hi%2C%20I%20want%20to%20buy%3A%20T-Shirt%20-%20₹399" target="_blank">
-  <button style="
-    padding:10px 20px;
-    font-size:16px;
-    background:#00a884;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;">
-    Buy Now
-  </button>
-</a>
+  <!-- PRODUCT 1 -->
+  <div class="card">
+    <img src="product1.jpg" alt="Product 1">
+    <h3>Product 1</h3>
+    <p>Price: ₹199</p>
+    <button onclick="addToCart('Product 1', 199)">Add to Cart</button>
+  </div>
 
+  <!-- PRODUCT 2 -->
+  <div class="card">
+    <img src="product2.jpg" alt="Product 2">
+    <h3>Product 2</h3>
+    <p>Price: ₹299</p>
+    <button onclick="addToCart('Product 2', 299)">Add to Cart</button>
+  </div>
 
-    <div class="product-card">
-        <img src="tshirt2.jpg">
-        <h3>blue logo black wendy</h3>
-        <p>₹349</p>
-        <button>Buy Now</button>
-    </div><a href="https://wa.me/919241753810?text=Hi%2C%20I%20want%20to%20buy%3A%20T-Shirt%20-%20₹399" target="_blank">
-  <button style="
-    padding:10px 20px;
-    font-size:16px;
-    background:#00a884;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;">
-    Buy Now
-  </button>
-</a>
+  <!-- PRODUCT 3 -->
+  <div class="card">
+    <img src="product3.jpg" alt="Product 3">
+    <h3>Product 3</h3>
+    <p>Price: ₹399</p>
+    <button onclick="addToCart('Product 3', 399)">Add to Cart</button>
+  </div>
+
+  <!-- PRODUCT 4 -->
+  <div class="card">
+    <img src="product4.jpg" alt="Product 4">
+    <h3>Product 4</h3>
+    <p>Price: ₹499</p>
+    <button onclick="addToCart('Product 4', 499)">Add to Cart</button>
+  </div>
+
+  <!-- PRODUCT 5 -->
+  <div class="card">
+    <img src="product5.jpg" alt="Product 5">
+    <h3>Product 5</h3>
+    <p>Price: ₹599</p>
+    <button onclick="addToCart('Product 5', 599)">Add to Cart</button>
+  </div>
 
 
-    <div class="product-card">
-        <img src="tshirt3.jpg">
-        <h3>TAZO T-shirt</h3>
-        <p>₹349</p>
-        <button>Buy Now</button>
-    </div><a href="https://wa.me/919241753810?text=Hi%2C%20I%20want%20to%20buy%3A%20T-Shirt%20-%20₹399" target="_blank">
-  <button style="
-    padding:10px 20px;
-    font-size:16px;
-    background:#00a884;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;">
-    Buy Now
-  </button>
-</a>
+  <!-- SECOND ROW (6–10) -->
 
+  <div class="card">
+    <img src="product6.jpg" alt="Product 6">
+    <h3>Product 6</h3>
+    <p>Price: ₹699</p>
+    <button onclick="addToCart('Product 6', 699)">Add to Cart</button>
+  </div>
 
-</section>
+  <div class="card">
+    <img src="product7.jpg" alt="Product 7">
+    <h3>Product 7</h3>
+    <p>Price: ₹799</p>
+    <button onclick="addToCart('Product 7', 799)">Add to Cart</button>
+  </div>
+
+  <div class="card">
+    <img src="product8.jpg" alt="Product 8">
+    <h3>Product 8</h3>
+    <p>Price: ₹899</p>
+    <button onclick="addToCart('Product 8', 899)">Add to Cart</button>
+  </div>
+
+  <div class="card">
+    <img src="product9.jpg" alt="Product 9">
+    <h3>Product 9</h3>
+    <p>Price: ₹999</p>
+    <button onclick="addToCart('Product 9', 999)">Add to Cart</button>
+  </div>
+
+  <div class="card">
+    <img src="product10.jpg" alt="Product 10">
+    <h3>Product 10</h3>
+    <p>Price: ₹1099</p>
+    <button onclick="addToCart('Product 10', 1099)">Add to Cart</button>
+  </div>
+
+</div>
+
+<script>
+  function addToCart(name, price) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    cart.push({ name: name, price: price });
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    alert(name + " added to cart!");
+  }
+</script>
 
 </body>
 </html>
