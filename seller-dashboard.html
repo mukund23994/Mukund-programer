@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Seller Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { padding:10px; margin:5px; }
+    img { max-width:150px; margin:10px; }
+  </style>
+</head>
+<body>
+
+<h2>Upload Product</h2>
+
+<input type="text" id="productName" placeholder="Product Name"><br>
+<input type="number" id="productPrice" placeholder="Price"><br>
+<input type="file" id="productImage"><br>
+<textarea id="productDesc" placeholder="Description"></textarea><br>
+<button onclick="uploadProduct()">Upload</button>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+  authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+  databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "indian-sellar-marketplac-d6395",
+  storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+  messagingSenderId: "35436518492",
+  appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
+
+function uploadProduct(){
+  const name = document.getElementById("productName").value;
+  const price = document.getElementById("productPrice").value;
+  const desc = document.getElementById("productDesc").value;
+  const image = document.getElementById("productImage").files[0];
+
+  if(!name || !price || !desc || !image){ alert("Fill all fields"); return; }
+
+  const sellerID = auth.currentUser.uid;
+  const imageRef = storage.ref("products/"+Date.now()+"_"+image.name);
+
+  imageRef.put(image).then(snapshot=>{
+    snapshot.ref.getDownloadURL().then(url=>{
+      db.ref("products/").push({sellerID,name,price:Number(price),description:desc,imageURL:url});
+      alert("Product uploaded successfully!");
+      document.getElementById("productName").value="";
+      document.getElementById("productPrice").value="";
+      document.getElementById("productDesc").value="";
+      document.getElementById("productImage").value="";
+    });
+  });
+}
+</script>
+
+</body>
+</html>
