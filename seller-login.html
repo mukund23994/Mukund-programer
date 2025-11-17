@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Seller Login / Signup</title>
+  <style>
+    body { font-family: Arial; padding: 30px; text-align:center; }
+    input { padding:10px; width:250px; margin:5px; }
+    button { padding:10px 20px; margin:5px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h2>Seller Login / Signup</h2>
+
+<input type="email" id="email" placeholder="Email"><br>
+<input type="password" id="password" placeholder="Password"><br>
+<input type="text" id="name" placeholder="Full Name"><br>
+<button onclick="signup()">Signup</button>
+<button onclick="login()">Login</button>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+  authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+  databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "indian-sellar-marketplac-d6395",
+  storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+  messagingSenderId: "35436518492",
+  appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+function signup(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const name = document.getElementById("name").value;
+
+  if(!email || !password || !name){ alert("Fill all fields"); return; }
+
+  auth.createUserWithEmailAndPassword(email,password)
+    .then(res=>{
+      const userId = res.user.uid;
+      db.ref("sellers/"+userId).set({name,email,registeredTime:new Date().toString()});
+      alert("Signup successful!");
+      window.location.href="seller-dashboard.html";
+    })
+    .catch(err=>alert(err.message));
+}
+
+function login(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if(!email || !password){ alert("Fill all fields"); return; }
+
+  auth.signInWithEmailAndPassword(email,password)
+    .then(res=>{
+      alert("Login successful!");
+      window.location.href="seller-dashboard.html";
+    })
+    .catch(err=>alert(err.message));
+}
+</script>
+
+</body>
+</html>
