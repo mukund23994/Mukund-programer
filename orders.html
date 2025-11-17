@@ -4,45 +4,15 @@
   <title>Admin Orders</title>
   <style>
     body { font-family: Arial; padding: 20px; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #777;
-      padding: 10px;
-      text-align: left;
-    }
-
-    button {
-      padding: 8px 12px;
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #loginBox {
-      padding: 20px;
-      background: #eee;
-      width: 300px;
-      margin: 50px auto;
-      border-radius: 10px;
-      text-align: center;
-    }
-
-    input {
-      padding: 10px;
-      width: 90%;
-      margin-bottom: 10px;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #777; padding: 10px; text-align: left; vertical-align: top; }
+    button { padding: 6px 12px; background: red; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    #loginBox { padding: 20px; background: #eee; width: 300px; margin: 50px auto; border-radius: 10px; text-align: center; }
+    input { padding: 10px; width: 90%; margin-bottom: 10px; }
+    #searchInput { width: 300px; margin-bottom: 20px; padding: 8px; font-size: 16px; }
+    #summary { margin-top: 15px; font-weight: bold; }
   </style>
 </head>
-
 <body>
 
 <div id="loginBox">
@@ -53,24 +23,30 @@
 
 <div id="ordersSection" style="display:none;">
   <h2>All Orders</h2>
+  <input type="text" id="searchInput" placeholder="Search by Customer Name..." onkeyup="filterOrders()">
   <table id="ordersTable">
     <tr>
       <th>Name</th>
       <th>Phone</th>
       <th>Address</th>
-      <th>Items (with Price)</th>
-      <th>Total Price</th>
+      <th>Items (Name x Qty x Price)</th>
+      <th>Total</th>
+      <th>Commission</th>
+      <th>Seller Earning</th>
+      <th>Time</th>
       <th>Delete</th>
     </tr>
   </table>
+  <div id="summary"></div>
+  <button onclick="downloadPDF()">Download PDF</button>
 </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-
 const firebaseConfig = {
   apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
   authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
@@ -80,19 +56,15 @@ const firebaseConfig = {
   messagingSenderId: "35436518492",
   appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let correctPass = "mukund123";  // ADMIN PASSWORD
+const ADMIN_PASSWORD = "mukund123";
+let ordersData = [];
 
-
-
-// 🔐 Admin Login
 function checkLogin() {
   let pass = document.getElementById("adminPass").value;
-  
-  if (pass === correctPass) {
+  if(pass === ADMIN_PASSWORD){
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("ordersSection").style.display = "block";
     loadOrders();
@@ -101,66 +73,103 @@ function checkLogin() {
   }
 }
 
-
-// 📌 Load Orders
-function loadOrders() {
+function loadOrders(){
   db.ref("orders").on("value", snapshot => {
-    let table = document.getElementById("ordersTable");
-    table.innerHTML = `
-      <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Address</th>
-        <th>Items (with Price)</th>
-        <th>Total Price</th>
-        <th>Delete</th>
-      </tr>
-    `;
-    
+    ordersData = [];
     snapshot.forEach(order => {
-      let data = order.val();
-
-      let itemsHTML = "";
-      let totalPrice = 0;
-
-      data.cartItems.forEach(item => {
-        itemsHTML += `
-          <div>
-            <b>${item.name}</b> — ₹${item.price} × ${item.quantity}
-          </div>
-        `;
-        totalPrice += item.price * item.quantity;
-      });
-
-      let row = `
-        <tr>
-          <td>${data.customerName}</td>
-          <td>${data.phone}</td>
-          <td>${data.address}</td>
-          <td>${itemsHTML}</td>
-          <td><b>₹${totalPrice}</b></td>
-          <td><button onclick="deleteOrder('${order.key}')">Delete</button></td>
-        </tr>
-      `;
-      table.innerHTML += row;
+      ordersData.push({id: order.key, ...order.val()});
     });
+    displayOrders(ordersData);
   });
 }
 
+function displayOrders(data){
+  let table = document.getElementById("ordersTable");
+  table.innerHTML = `
+    <tr>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Address</th>
+      <th>Items (Name x Qty x Price)</th>
+      <th>Total</th>
+      <th>Commission</th>
+      <th>Seller Earning</th>
+      <th>Time</th>
+      <th>Delete</th>
+    </tr>
+  `;
+  let totalCommission = 0;
+  data.forEach(order => {
+    let itemsHTML = "";
+    let total = 0;
+    order.cartItems.forEach(item => {
+      let qty = item.quantity || 1;
+      itemsHTML += `<div>${item.name} × ${qty} × ₹${item.price}</div>`;
+      total += item.price * qty;
+    });
+    let commission = total * 0.10;
+    let sellerEarning = total - commission;
+    totalCommission += commission;
 
-// ❌ DELETE Order
-function deleteOrder(orderId) {
-  let confirmDel = confirm("Delete this order?");
-  if (!confirmDel) return;
-
-  db.ref("orders/" + orderId).remove()
-    .then(() => {
-      alert("Order deleted!");
-      loadOrders();
-    })
-    .catch(err => alert("Error: " + err));
+    table.innerHTML += `
+      <tr>
+        <td>${order.customerName}</td>
+        <td>${order.phone}</td>
+        <td>${order.address}</td>
+        <td>${itemsHTML}</td>
+        <td>₹${total}</td>
+        <td>₹${commission.toFixed(2)}</td>
+        <td>₹${sellerEarning.toFixed(2)}</td>
+        <td>${order.time}</td>
+        <td><button onclick="deleteOrder('${order.id}')">Delete</button></td>
+      </tr>
+    `;
+  });
+  document.getElementById("summary").innerText = `Total Commission Earned: ₹${totalCommission.toFixed(2)}`;
 }
 
+function deleteOrder(orderId){
+  if(confirm("Are you sure to delete this order?")){
+    db.ref("orders/"+orderId).remove();
+  }
+}
+
+function filterOrders(){
+  let input = document.getElementById("searchInput").value.toLowerCase();
+  let filtered = ordersData.filter(o => o.customerName.toLowerCase().includes(input));
+  displayOrders(filtered);
+}
+
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 10;
+  doc.setFontSize(14);
+  doc.text("All Orders", 10, y);
+  y += 10;
+
+  ordersData.forEach(order => {
+    let total = 0;
+    order.cartItems.forEach(item=>{
+      let qty = item.quantity || 1;
+      total += item.price * qty;
+    });
+    let commission = total * 0.10;
+    let sellerEarning = total - commission;
+    doc.setFontSize(12);
+    doc.text(`Name: ${order.customerName}, Phone: ${order.phone}, Total: ₹${total}, Commission: ₹${commission.toFixed(2)}, Seller Earning: ₹${sellerEarning.toFixed(2)}`, 10, y);
+    y+=10;
+    order.cartItems.forEach(item=>{
+      let qty = item.quantity || 1;
+      doc.text(`   - ${item.name} × ${qty} × ₹${item.price}`, 10, y);
+      y+=7;
+    });
+    doc.text(`Address: ${order.address}, Time: ${order.time}`, 10, y);
+    y+=10;
+    if(y>270){ doc.addPage(); y=10; }
+  });
+  doc.save("orders.pdf");
+}
 </script>
 
 </body>
