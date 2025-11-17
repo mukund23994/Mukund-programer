@@ -51,4 +51,97 @@ document.getElementById('checkoutForm').addEventListener("submit", (e) => {
     })
     .catch((err) => alert("Error: " + err));
 });
+</script><!-- Firebase (v8 - non-module) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+  // Firebase config (same as admin page)
+  var firebaseConfig = {
+    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "indian-sellar-marketplac-d6395",
+    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+    messagingSenderId: "35436518492",
+    appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+  };
+  // Initialize (if already initialized elsewhere, this is safe)
+  if(!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  var db = firebase.database();
+
+  // Helper to get cart items — adjust key name if you used different localStorage key
+  function getCartItemsFromLocalStorage() {
+    try {
+      // Common keys: "cartItems", "cart", "selectedProduct". 
+      // Change 'cart' below to whatever key you use in your site.
+      var raw = localStorage.getItem("cart") || localStorage.getItem("cartItems") || localStorage.getItem("selectedProduct");
+      if(!raw) return [];
+      // If you stored JSON stringify of array/object
+      var parsed = JSON.parse(raw);
+      // Normalize into array of items {name, price, quantity}
+      if(Array.isArray(parsed)) return parsed;
+      // If single product stored as string/name:
+      if(typeof parsed === "object" && parsed !== null) return [parsed];
+      return [];
+    } catch(e) {
+      console.error("Cart parse error:", e);
+      return [];
+    }
+  }
+
+  // Submit handler
+  document.getElementById('checkoutForm').addEventListener("submit", function(e){
+    e.preventDefault();
+
+    var name = document.getElementById("name").value.trim();
+    var phone = document.getElementById("phone").value.trim();
+    var address = document.getElementById("address").value.trim();
+
+    if(!name || !phone || !address){
+      alert("Please fill all fields.");
+      return;
+    }
+
+    var cartItems = getCartItemsFromLocalStorage();
+    if(!cartItems || cartItems.length === 0){
+      // If your site uses a different storage for single product, we still allow placing order,
+      // but ideally cart should be present.
+      // You can customize this alert or continue with single selectedProduct.
+      if(localStorage.getItem("selectedProduct")) {
+        // try to create an item object from selectedProduct string/name
+        cartItems = [{ name: localStorage.getItem("selectedProduct"), price: 0, quantity: 1 }];
+      } else {
+        if(!confirm("Cart is empty. Place order anyway?")) return;
+      }
+    }
+
+    // Create order object with keys admin page expects:
+    var orderData = {
+      customerName: name,
+      phone: phone,
+      address: address,
+      cartItems: cartItems,
+      time: new Date().toLocaleString()
+    };
+
+    // Push to /orders
+    var newRef = db.ref("orders").push();
+    newRef.set(orderData, function(error) {
+      if(error) {
+        alert("Error saving order: " + error);
+        console.error(error);
+      } else {
+        alert("Order Placed Successfully!");
+        // Optional: clear cart localStorage keys (uncomment if desired)
+        // localStorage.removeItem("cart");
+        // localStorage.removeItem("cartItems");
+        // redirect to orders page or thank you page:
+        window.location.href = "orders.html"; // change if your admin page URL different
+      }
+    });
+  });
 </script>
+
