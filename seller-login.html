@@ -3,69 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <title>Seller Login</title>
-    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body { padding: 20px; font-family: Arial; }
+        input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            border: 1px solid #ccc; border-radius: 6px;
+        }
+        button {
+            background: #28a745; padding: 12px;
+            border: none; width: 100%; color: white;
+            border-radius: 6px; cursor: pointer;
+            font-size: 18px;
+        }
+        p { margin-top: 10px; }
+    </style>
 </head>
+
 <body>
 
 <h2>Seller Login</h2>
 
-<form id="loginForm">
-    <label>Email:</label>
-    <input type="email" id="email" required><br><br>
+<input type="text" id="email" placeholder="Email (username)">
+<input type="password" id="password" placeholder="Password">
 
-    <label>Password:</label>
-    <input type="password" id="password" required><br><br>
-
-    <button type="submit">Login</button>
-</form>
+<button onclick="login()">Login</button>
 
 <p id="msg"></p>
 
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+<!-- Firebase v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    // FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-        authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-        databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "indian-sellar-marketplac-d6395",
-        storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-        messagingSenderId: "35436518492",
-        appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
-    };
+const firebaseConfig = {
+    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "indian-sellar-marketplac-d6395",
+    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+    messagingSenderId: "35436518492",
+    appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-        e.preventDefault();
+function login() {
+    let email = document.getElementById("email").value.toLowerCase().replace(".", "_");
+    let password = document.getElementById("password").value;
 
-        let email = document.getElementById("email").value.replace(".", "_");
-        let pass = document.getElementById("password").value;
+    if (!email || !password) {
+        msg.innerHTML = "❌ All fields required!";
+        return;
+    }
 
-        db.ref("sellers/" + email).once("value", function (snapshot) {
-            if (snapshot.exists()) {
-                let data = snapshot.val();
+    db.ref("sellers/" + email).once("value", data => {
+        if (!data.exists()) {
+            msg.innerHTML = "❌ No account found!";
+            return;
+        }
 
-                if (data.password === pass) {
-                    document.getElementById("msg").innerHTML = "✔ Login Successful!";
+        let user = data.val();
 
-                    // Store seller session
-                    localStorage.setItem("seller", email);
+        if (user.password === password) {
+            msg.innerHTML = "✔ Login Successful!";
 
-                    // Redirect to seller dashboard
-                    window.location.href = "seller-dashboard.html";
-                } else {
-                    document.getElementById("msg").innerHTML = "❌ Wrong Password!";
-                }
-            } else {
-                document.getElementById("msg").innerHTML = "❌ Seller does not exist!";
-            }
-        });
+            // save session
+            localStorage.setItem("seller_login", user.email);
+
+            setTimeout(() => {
+                window.location.href = "seller-dashboard.html";
+            }, 1200);
+
+        } else {
+            msg.innerHTML = "❌ Incorrect Password!";
+        }
     });
+}
 </script>
 
 </body>
