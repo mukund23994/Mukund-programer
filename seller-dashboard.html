@@ -1,66 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Seller Dashboard</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { padding:10px; margin:5px; }
-    img { max-width:150px; margin:10px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Seller Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body { padding: 20px; font-family: Arial; }
+        input {
+            width: 100%; padding: 10px; margin: 8px 0;
+            border: 1px solid #ccc; border-radius: 6px;
+        }
+        button {
+            padding: 10px; background: #28a745; 
+            color: white; border: none; width: 100%;
+            border-radius: 6px; cursor: pointer;
+        }
+        .box {
+            padding: 15px; border: 1px solid #ddd; margin-top: 20px;
+            border-radius: 6px; background: #f9f9f9;
+        }
+        .order {
+            padding: 10px; margin: 10px 0;
+            border: 1px solid #ccc; border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
 
-<h2>Upload Product</h2>
+<h2>Seller Dashboard</h2>
+<p>Welcome, <span id="sellerName"></span></p>
 
-<input type="text" id="productName" placeholder="Product Name"><br>
-<input type="number" id="productPrice" placeholder="Price"><br>
-<input type="file" id="productImage"><br>
-<textarea id="productDesc" placeholder="Description"></textarea><br>
-<button onclick="uploadProduct()">Upload</button>
+<button onclick="logout()">Logout</button>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+<hr>
+
+<h3>Add New Product</h3>
+
+<div class="box">
+    <input type="text" id="pname" placeholder="Product Name">
+    <input type="number" id="pprice" placeholder="Product Price">
+    <input type="text" id="pimage" placeholder="Image URL">
+
+    <button onclick="addProduct()">Add Product</button>
+    <p id="msg"></p>
+</div>
+
+<hr>
+
+<h3>Your Orders</h3>
+<div id="orderList"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-  authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-  databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "indian-sellar-marketplac-d6395",
-  storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-  messagingSenderId: "35436518492",
-  appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
-const storage = firebase.storage();
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+        authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+        databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "indian-sellar-marketplac-d6395",
+        storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+        messagingSenderId: "35436518492",
+        appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+    };
 
-function uploadProduct(){
-  const name = document.getElementById("productName").value;
-  const price = document.getElementById("productPrice").value;
-  const desc = document.getElementById("productDesc").value;
-  const image = document.getElementById("productImage").files[0];
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  if(!name || !price || !desc || !image){ alert("Fill all fields"); return; }
+    // CHECK LOGIN
+    let seller = localStorage.getItem("seller");
+    if (!seller) {
+        alert("Access Denied! Please login.");
+        window.location.href = "seller-login.html";
+    }
 
-  const sellerID = auth.currentUser.uid;
-  const imageRef = storage.ref("products/"+Date.now()+"_"+image.name);
+    document.getElementById("sellerName").innerText = seller.replace("_", ".");
 
-  imageRef.put(image).then(snapshot=>{
-    snapshot.ref.getDownloadURL().then(url=>{
-      db.ref("products/").push({sellerID,name,price:Number(price),description:desc,imageURL:url});
-      alert("Product uploaded successfully!");
-      document.getElementById("productName").value="";
-      document.getElementById("productPrice").value="";
-      document.getElementById("productDesc").value="";
-      document.getElementById("productImage").value="";
-    });
-  });
-}
-</script>
-
-</body>
-</html>
+    // ADD PRODUCT
+    function addProduct() {
+        let name = document.getElementById("pname").value;
+        let price = document.getElementById("pprice").value;
+        let image = document.getElementById("pima
