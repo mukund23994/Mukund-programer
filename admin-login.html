@@ -10,7 +10,14 @@ button { background:#007bff; color:white; border:none; width:100%; padding:12px;
 p { color:red; }
 </style>
 </head>
-<body>
+<body><script>
+// Check admin login
+if(localStorage.getItem("isAdmin") !== "true"){
+  alert("You are not admin!");
+  window.location.href = "index.html";
+}
+</script>
+
 
 <h2>Admin Login</h2>
 <input type="email" id="email" placeholder="Admin Gmail">
