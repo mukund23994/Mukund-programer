@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+input { width: 100%; padding: 12px; margin: 10px 0; border:1px solid #ccc; border-radius:6px; }
+button { background:#007bff; color:white; border:none; width:100%; padding:12px; font-size:18px; cursor:pointer; border-radius:6px; }
+p { color:red; }
+</style>
+</head>
+<body>
+
+<h2>Admin Login</h2>
+<input type="email" id="email" placeholder="Admin Gmail">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="msg"></p>
+
+<script>
+const adminEmail = "mukund23994@gmail.com"; // आपका admin Gmail
+const adminPassword = "Admin@123"; // आप चाहो तो change कर सकते हो
+
+function login(){
+  const email = document.getElementById("email").value.toLowerCase();
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+
+  if(email === adminEmail && password === adminPassword){
+    localStorage.setItem("isAdmin", "true");
+    window.location.href = "admin-orders.html";
+  } else {
+    msg.innerText = "❌ Invalid credentials!";
+  }
+}
+</script>
+</body>
+</html>
