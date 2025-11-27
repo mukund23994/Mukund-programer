@@ -1,54 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Checkout</title>
   <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-    }
+    body { font-family: Arial; padding: 20px; }
     input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #aaa;
-      border-radius: 6px;
+      width: 100%; padding: 12px; margin: 10px 0;
+      border: 1px solid #ccc; border-radius: 6px; font-size: 16px;
     }
     button {
-      background: green;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
+      background: #28a745; color: white; width: 100%;
+      padding: 14px; border: none; border-radius: 6px;
+      font-size: 18px; cursor: pointer; margin-top: 15px;
     }
   </style>
 </head>
 <body>
 
 <h2>Checkout</h2>
+<h3>Enter Your Details</h3>
 
-<form id="checkoutForm">
-  <label>Name:</label>
-  <input type="text" id="name" required>
+<input type="text" id="name" placeholder="Full Name">
+<input type="text" id="phone" placeholder="Phone Number">
+<textarea id="address" placeholder="Delivery Address" rows="4"></textarea>
 
-  <label>Phone:</label>
-  <input type="text" id="phone" required>
+<button onclick="placeOrder()">Place Order</button>
 
-  <label>Address:</label>
-  <textarea id="address" required></textarea>
-
-  <button type="submit">Place Order</button>
-</form>
-
-
-<!-- Firebase v8 (Admin page ke saath match karta hai) -->
+<!-- Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// SAME CONFIG AS YOUR ADMIN PAGE
 const firebaseConfig = {
   apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
   authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
@@ -62,47 +45,42 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ---- CART READING FUNCTION ----
-function getCartItems() {
-  try {
-    let cart = localStorage.getItem("cart") || localStorage.getItem("cartItems");
+function placeOrder() {
+  let name = document.getElementById("name").value;
+  let phone = document.getElementById("phone").value;
+  let address = document.getElementById("address").value;
 
-    if (!cart) {
-      let item = localStorage.getItem("selectedProduct");
-      if (item) return [{ name: item, price: 0, quantity: 1 }];
-      return [];
-    }
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    let data = JSON.parse(cart);
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
+  if (!name || !phone || !address) {
+    alert("Please fill all fields");
+    return;
   }
-}
 
-// ---- SUBMIT ORDER ----
-document.getElementById("checkoutForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+  if (cart.length === 0) {
+    alert("Your cart is empty!");
+    return;
+  }
 
-  let order = {
-    customerName: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    address: document.getElementById("address").value,
-    cartItems: getCartItems(),
+  let orderData = {
+    name: name,
+    phone: phone,
+    address: address,
+    items: cart,
     time: new Date().toLocaleString()
   };
 
-  db.ref("orders").push(order, (err) => {
-    if (err) {
-      alert("Error placing order!");
-      console.log(err);
-    } else {
+  // Save order to Firebase
+  db.ref("orders").push(orderData)
+    .then(() => {
       alert("Order placed successfully!");
-      window.location.href = "orders.html";  // ADMIN PAGE
-    }
-  });
-});
+      localStorage.removeItem("cart");  // Clear cart
+      window.location.href = "index.html";  // Redirect home
+    })
+    .catch(err => {
+      alert("Error saving order: " + err);
+    });
+}
 </script>
-
 </body>
 </html>
