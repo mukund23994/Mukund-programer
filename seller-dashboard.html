@@ -3,84 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <title>Seller Dashboard</title>
-    <link rel="stylesheet" href="style.css">
 
     <style>
         body { padding: 20px; font-family: Arial; }
-        input {
-            width: 100%; padding: 10px; margin: 8px 0;
-            border: 1px solid #ccc; border-radius: 6px;
+        input, textarea {
+            width: 100%; padding: 12px;
+            margin: 10px 0; border: 1px solid #ccc;
+            border-radius: 6px;
         }
         button {
-            padding: 10px; background: #28a745; 
-            color: white; border: none; width: 100%;
-            border-radius: 6px; cursor: pointer;
+            width: 100%; padding: 12px;
+            background: #28a745; border: none;
+            color: white; border-radius: 6px;
+            font-size: 18px; cursor: pointer;
         }
-        .box {
-            padding: 15px; border: 1px solid #ddd; margin-top: 20px;
-            border-radius: 6px; background: #f9f9f9;
-        }
-        .order {
-            padding: 10px; margin: 10px 0;
-            border: 1px solid #ccc; border-radius: 6px;
-        }
+        h2 { margin-bottom: 10px; }
     </style>
 </head>
+
 <body>
 
-<h2>Seller Dashboard</h2>
-<p>Welcome, <span id="sellerName"></span></p>
+<h2>Add New Product</h2>
 
-<button onclick="logout()">Logout</button>
+<input type="text" id="pname" placeholder="Product Name">
+<input type="text" id="pprice" placeholder="Price">
+<input type="text" id="pimage" placeholder="Image URL">
+<textarea id="pdesc" placeholder="Description"></textarea>
 
-<hr>
+<button onclick="addProduct()">Add Product</button>
 
-<h3>Add New Product</h3>
+<p id="msg"></p>
 
-<div class="box">
-    <input type="text" id="pname" placeholder="Product Name">
-    <input type="number" id="pprice" placeholder="Product Price">
-    <input type="text" id="pimage" placeholder="Image URL">
-
-    <button onclick="addProduct()">Add Product</button>
-    <p id="msg"></p>
-</div>
-
-<hr>
-
-<h3>Your Orders</h3>
-<div id="orderList"></div>
-
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-    // Firebase Config
-    const firebaseConfig = {
-        apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-        authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-        databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "indian-sellar-marketplac-d6395",
-        storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-        messagingSenderId: "35436518492",
-        appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
-    };
+const firebaseConfig = {
+    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "indian-sellar-marketplac-d6395",
+    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+    messagingSenderId: "35436518492",
+    appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    // CHECK LOGIN
-    let seller = localStorage.getItem("seller");
-    if (!seller) {
-        alert("Access Denied! Please login.");
-        window.location.href = "seller-login.html";
+function addProduct() {
+    let name = document.getElementById("pname").value;
+    let price = document.getElementById("pprice").value;
+    let image = document.getElementById("pimage").value;
+    let desc = document.getElementById("pdesc").value;
+
+    if (!name || !price || !image) {
+        msg.innerHTML = "❌ Please fill all fields!";
+        return;
     }
 
-    document.getElementById("sellerName").innerText = seller.replace("_", ".");
+    let productData = {
+        name: name,
+        price: price,
+        image: image,
+        description: desc
+    };
 
-    // ADD PRODUCT
-    function addProduct() {
-        let name = document.getElementById("pname").value;
-        let price = document.getElementById("pprice").value;
-        let image = document.getElementById("pima
+    db.ref("products").push(productData)
+        .then(() => {
+            msg.innerHTML = "✔ Product Added Successfully!";
+            document.getElementById("pname").value = "";
+            document.getElementById("pprice").value = "";
+            document.getElementById("pimage").value = "";
+            document.getElementById("pdesc").value = "";
+        })
+        .catch(err => {
+            msg.innerHTML = "❌ Error: " + err;
+        });
+}
+</script>
+
+</body>
+</html>
