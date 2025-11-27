@@ -1,50 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin Orders</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #777; padding: 10px; text-align: left; vertical-align: top; }
-    button { padding: 6px 12px; background: red; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    #loginBox { padding: 20px; background: #eee; width: 300px; margin: 50px auto; border-radius: 10px; text-align: center; }
-    input { padding: 10px; width: 90%; margin-bottom: 10px; }
-    #searchInput { width: 300px; margin-bottom: 20px; padding: 8px; font-size: 16px; }
-    #summary { margin-top: 15px; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<title>Admin Orders</title>
+<style>
+body { font-family: Arial; padding:20px; }
+.order { border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:6px; }
+button { background:#ff2e00; color:white; border:none; padding:8px 12px; cursor:pointer; border-radius:4px; }
+</style>
 </head>
 <body>
 
-<div id="loginBox">
-  <h3>Admin Login</h3>
-  <input type="password" id="adminPass" placeholder="Enter Password">
-  <button onclick="checkLogin()">Login</button>
-</div>
+<h2>All Orders</h2>
+<div id="orders"></div>
 
-<div id="ordersSection" style="display:none;">
-  <h2>All Orders</h2>
-  <input type="text" id="searchInput" placeholder="Search by Customer Name..." onkeyup="filterOrders()">
-  <table id="ordersTable">
-    <tr>
-      <th>Name</th>
-      <th>Phone</th>
-      <th>Address</th>
-      <th>Items (Name x Qty x Price)</th>
-      <th>Total</th>
-      <th>Commission</th>
-      <th>Seller Earning</th>
-      <th>Time</th>
-      <th>Delete</th>
-    </tr>
-  </table>
-  <div id="summary"></div>
-  <button onclick="downloadPDF()">Download PDF</button>
-</div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -59,118 +30,37 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const ADMIN_PASSWORD = "mukund123bihari";
-let ordersData = [];
+const ordersDiv = document.getElementById("orders");
 
-function checkLogin() {
-  let pass = document.getElementById("adminPass").value;
-  if(pass === ADMIN_PASSWORD){
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("ordersSection").style.display = "block";
-    loadOrders();
-  } else {
-    alert("Wrong Password!");
-  }
-}
+db.ref("orders").on("value", snapshot => {
+  ordersDiv.innerHTML = "";
+  const data = snapshot.val();
+  if(!data) { ordersDiv.innerHTML = "<p>No orders yet</p>"; return; }
 
-function loadOrders(){
-  db.ref("orders").on("value", snapshot => {
-    ordersData = [];
-    snapshot.forEach(order => {
-      ordersData.push({id: order.key, ...order.val()});
-    });
-    displayOrders(ordersData);
-  });
-}
+  Object.keys(data).forEach(key => {
+    const order = data[key];
+    let itemsHtml = "";
+    order.items.forEach(item => { itemsHtml += `<li>${item.name} - ₹${item.price}</li>`; });
 
-function displayOrders(data){
-  let table = document.getElementById("ordersTable");
-  table.innerHTML = `
-    <tr>
-      <th>Name</th>
-      <th>Phone</th>
-      <th>Address</th>
-      <th>Items (Name x Qty x Price)</th>
-      <th>Total</th>
-      <th>Commission</th>
-      <th>Seller Earning</th>
-      <th>Time</th>
-      <th>Delete</th>
-    </tr>
-  `;
-  let totalCommission = 0;
-  data.forEach(order => {
-    let itemsHTML = "";
-    let total = 0;
-    order.cartItems.forEach(item => {
-      let qty = item.quantity || 1;
-      itemsHTML += `<div>${item.name} × ${qty} × ₹${item.price}</div>`;
-      total += item.price * qty;
-    });
-    let commission = total * 0.10;
-    let sellerEarning = total - commission;
-    totalCommission += commission;
-
-    table.innerHTML += `
-      <tr>
-        <td>${order.customerName}</td>
-        <td>${order.phone}</td>
-        <td>${order.address}</td>
-        <td>${itemsHTML}</td>
-        <td>₹${total}</td>
-        <td>₹${commission.toFixed(2)}</td>
-        <td>₹${sellerEarning.toFixed(2)}</td>
-        <td>${order.time}</td>
-        <td><button onclick="deleteOrder('${order.id}')">Delete</button></td>
-      </tr>
+    const div = document.createElement("div");
+    div.className = "order";
+    div.innerHTML = `
+      <p><b>Name:</b> ${order.name}</p>
+      <p><b>Phone:</b> ${order.phone}</p>
+      <p><b>Address:</b> ${order.address}</p>
+      <p><b>Items:</b><ul>${itemsHtml}</ul></p>
+      <p><b>Time:</b> ${order.time}</p>
+      <button onclick="deleteOrder('${key}')">Delete Order</button>
     `;
+    ordersDiv.appendChild(div);
   });
-  document.getElementById("summary").innerText = `Total Commission Earned: ₹${totalCommission.toFixed(2)}`;
-}
+});
 
-function deleteOrder(orderId){
-  if(confirm("Are you sure to delete this order?")){
-    db.ref("orders/"+orderId).remove();
+function deleteOrder(key){
+  if(confirm("Delete this order?")){
+    db.ref("orders/"+key).remove();
   }
-}
-
-function filterOrders(){
-  let input = document.getElementById("searchInput").value.toLowerCase();
-  let filtered = ordersData.filter(o => o.customerName.toLowerCase().includes(input));
-  displayOrders(filtered);
-}
-
-function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  let y = 10;
-  doc.setFontSize(14);
-  doc.text("All Orders", 10, y);
-  y += 10;
-
-  ordersData.forEach(order => {
-    let total = 0;
-    order.cartItems.forEach(item=>{
-      let qty = item.quantity || 1;
-      total += item.price * qty;
-    });
-    let commission = total * 0.10;
-    let sellerEarning = total - commission;
-    doc.setFontSize(12);
-    doc.text(`Name: ${order.customerName}, Phone: ${order.phone}, Total: ₹${total}, Commission: ₹${commission.toFixed(2)}, Seller Earning: ₹${sellerEarning.toFixed(2)}`, 10, y);
-    y+=10;
-    order.cartItems.forEach(item=>{
-      let qty = item.quantity || 1;
-      doc.text(`   - ${item.name} × ${qty} × ₹${item.price}`, 10, y);
-      y+=7;
-    });
-    doc.text(`Address: ${order.address}, Time: ${order.time}`, 10, y);
-    y+=10;
-    if(y>270){ doc.addPage(); y=10; }
-  });
-  doc.save("orders.pdf");
 }
 </script>
-
 </body>
 </html>
