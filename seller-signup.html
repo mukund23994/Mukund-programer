@@ -3,60 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <title>Seller Signup</title>
-    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body { padding: 20px; font-family: Arial; }
+        input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            border: 1px solid #ccc; border-radius: 6px;
+        }
+        button {
+            background: #007bff; padding: 12px;
+            border: none; width: 100%; color: white;
+            border-radius: 6px; cursor: pointer;
+            font-size: 18px;
+        }
+        p { margin-top: 10px; }
+    </style>
 </head>
+
 <body>
 
 <h2>Seller Signup</h2>
 
-<form id="signupForm">
-    <label>Full Name:</label>
-    <input type="text" id="name" required><br><br>
+<input type="text" id="name" placeholder="Full Name">
+<input type="text" id="email" placeholder="Email (username)">
+<input type="password" id="password" placeholder="Password">
 
-    <label>Email:</label>
-    <input type="email" id="email" required><br><br>
-
-    <label>Password:</label>
-    <input type="password" id="password" required><br><br>
-
-    <button type="submit">Create Seller Account</button>
-</form>
+<button onclick="signup()">Create Seller Account</button>
 
 <p id="msg"></p>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
 
 <script>
-    // FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
-        authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
-        databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "indian-sellar-marketplac-d6395",
-        storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
-        messagingSenderId: "35436518492",
-        appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
-    };
+const firebaseConfig = {
+    apiKey: "AIzaSyBu2IUZ2RpB_pv0zA5nXqL7ur0uKZc8btE",
+    authDomain: "indian-sellar-marketplac-d6395.firebaseapp.com",
+    databaseURL: "https://indian-sellar-marketplac-d6395-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "indian-sellar-marketplac-d6395",
+    storageBucket: "indian-sellar-marketplac-d6395.firebasestorage.app",
+    messagingSenderId: "35436518492",
+    appId: "1:35436518492:web:24c75eb5b85cd8f7d71a99"
+};
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    document.getElementById('signupForm').addEventListener('submit', function(e){
-        e.preventDefault();
+function signup() {
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("email").value.toLowerCase().replace(".", "_");
+    let password = document.getElementById("password").value;
 
-        let name = document.getElementById('name').value;
-        let email = document.getElementById('email').value.replace(".", "_");
-        let pass = document.getElementById('password').value;
+    if (!name || !email || !password) {
+        msg.innerHTML = "❌ All fields required!";
+        return;
+    }
 
-        db.ref("sellers/" + email).set({
-            name: name,
-            email: email,
-            password: pass
-        });
-
-        document.getElementById('msg').innerHTML = "✔️ Seller Account Created! Now Login.";
+    db.ref("sellers/" + email).set({
+        name: name,
+        email: email,
+        password: password
     });
+
+    msg.innerHTML = "✔ Account Created! Now you can Login.";
+
+    setTimeout(() => {
+        window.location.href = "seller-login.html";
+    }, 1500);
+}
 </script>
 
 </body>
